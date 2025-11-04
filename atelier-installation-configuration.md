@@ -139,9 +139,9 @@ kind: ConfigMap
 metadata:
   name: argocd-cm
   namespace: argocd
-labels:
-  app.kubernetes.io/name: argocd-cm
-  app.kubernetes.io/part-of: argocd
+  labels:
+    app.kubernetes.io/name: argocd-cm
+    app.kubernetes.io/part-of: argocd
 data:
   # URL de base d'Argo CD (à adapter si tu utilises un Ingress ou un tunnel)
   url: https://localhost:8080
