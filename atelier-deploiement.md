@@ -229,6 +229,8 @@ argocd app resources guestbook
 
 **Étape 3 : Activer le prune et synchroniser**
 
+* Supprimer votre fichier du git (et faite un commit / push)
+
 ```bash
 # Si prune n'est pas activé, l'activer
 argocd app set guestbook --sync-option Prune=true
