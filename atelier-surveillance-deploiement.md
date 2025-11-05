@@ -214,15 +214,56 @@ kubectl get pods -n bluegreen -l version=blue
 kubectl get pods -n bluegreen -l version=green
 
 # Tester blue
-kubectl port-forward -n bluegreen svc/blue-myapp 8080:80
-curl localhost:8080  # Devrait retourner nginx 1.19
+kubectl port-forward -n bluegreen svc/myapp-blue 8080:80
+curl localhost:8080  # Devrait retourner une page nginx 1.19
 
 # Tester green
-kubectl port-forward -n bluegreen svc/green-myapp 8081:80
-curl localhost:8081  # Devrait retourner nginx 1.20
+kubectl port-forward -n bluegreen svc/myapp-green 8081:80
+curl localhost:8081  # Devrait retourner une page nginx 1.20
 ```
 
-**Étape 4 : Basculer le trafic**
+**Étape 4 : Gérer le front**
+
+* Créer les deux fichiers suivants :
+
+**overlays/front/kustomization.yaml**
+```yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+- service-front.yaml
+
+```
+**overlays/front/service-front.yaml**
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: myapp
+  namespace: bluegreen
+spec:
+  selector:
+    app: myapp
+    version: blue   # ou green pour basculer
+  ports:
+    - port: 80
+      targetPort: 80
+  type: ClusterIP
+
+```
+
+* Créer l'application ArgoCD :
+```bash
+argocd app create myapp-front \
+  --repo https://github.com/vanessakovalsky/argocd-training \
+  --path atelier/surveillance/myapp/overlays/front \
+  --dest-server https://kubernetes.default.svc \
+  --dest-namespace bluegreen \
+  --sync-policy automated
+```
+* Git commit and push et vérifiez la création du service myapp
+
+**Etape 5 : Basculer le trafic**
 
 ```bash
 # Initialement, pointer vers blue
