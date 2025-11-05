@@ -27,6 +27,8 @@ spec:
     - CreateNamespace=true
 ```
 
+* Déployer l'application avec kubectl ou argocd
+
 **Modifier pour casser l'application :**
 ```bash
 # Après le déploiement, modifier l'image pour qu'elle n'existe pas
