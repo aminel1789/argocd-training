@@ -1,0 +1,34 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: nginx-helm
+  namespace: argocd
+spec:
+  project: default
+  
+  source:
+    repoURL: https://charts.bitnami.com/bitnami
+    chart: nginx
+    targetRevision: 13.2.0
+    helm:
+      parameters:
+      - name: service.type
+        value: ClusterIP
+      - name: replicaCount
+        value: "2"
+      values: |
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+  
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: nginx
+  
+  syncPolicy:
+    syncOptions:
+    - CreateNamespace=true

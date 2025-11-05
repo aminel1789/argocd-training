@@ -1,4 +1,15 @@
-### Atelier 3.1 : Déployer votre première application (60 min)
+### Atelier 3.1 : Déployer votre première application
+#### Pré-requis
+
+* Créer un dépôt sur github et forker le dépôt : https://github.com/argoproj/argocd-example-apps
+
+```bash
+# Forker https://github.com/argoproj/argocd-example-apps
+
+# Cloner votre fork
+git clone https://github.com/VOTRE_USERNAME/argocd-example-apps
+cd argocd-example-apps/guestbook
+```
 
 #### Objectif
 Déployer une application simple avec ArgoCD en utilisant les manifestes d'exemple.
@@ -61,7 +72,7 @@ argocd app sync guestbook
 
 ```bash
 # Suivre la synchronisation en temps réel
-argocd app sync guestbook --watch
+argocd app wait guestbook
 
 # Vérifier les ressources déployées
 kubectl get all -n guestbook
@@ -169,7 +180,7 @@ kubectl scale deployment guestbook-ui -n guestbook --replicas=5
 # Vérifier l'état dans ArgoCD
 argocd app get guestbook
 
-# Status devrait être "OutOfSync"
+# Status devrait être "OutOfSync" si syncro manuelle
 ```
 
 **Étape 2 : Observer la dérive dans l'UI**
@@ -192,22 +203,28 @@ argocd app sync guestbook
 
 #### Partie 2 : Tester le prune
 
-**Étape 1 : Ajouter une ressource manuellement**
+**Étape 1 : Ajouter une ressource**
 
-```bash
-# Créer un ConfigMap non géré par Git
-kubectl create configmap manual-config \
-  -n guestbook \
-  --from-literal=key=value
+* Créer le fichier cm.yaml
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: test-config
+  namespace: guestbook
+data:
+  key: value
 ```
+* Puis le commiter et le push
+* Observer argocd déployer votre config map
 
-**Étape 2 : Vérifier que la ressource n'est pas gérée**
+**Étape 2 : Vérifier que la ressource est gérée**
 
 ```bash
 # Lister les ressources gérées
 argocd app resources guestbook
 
-# Le ConfigMap manuel ne devrait pas apparaître
+# Le ConfigMap devrait apparaître
 ```
 
 **Étape 3 : Activer le prune et synchroniser**
@@ -219,10 +236,43 @@ argocd app set guestbook --sync-option Prune=true
 # Synchroniser
 argocd app sync guestbook --prune
 
-# Vérifier que le ConfigMap manuel a été supprimé
-kubectl get configmap manual-config -n guestbook
+# Vérifier que le ConfigMap a été supprimé
+kubectl get configmap test-config -n guestbook
 # Error: not found
 ```
+
+**Étape 4 : Ajouter une ressource manuellement**
+
+```bash
+# Créer un ConfigMap non géré par Git
+kubectl create configmap manual-config \
+  -n guestbook \
+  --from-literal=key=value
+```
+
+**Étape 5 : Vérifier que la ressource n'est pas gérée**
+
+```bash
+# Lister les ressources gérées
+argocd app resources guestbook
+
+# Le ConfigMap manuel ne devrait pas apparaître
+```
+
+**Étape 6 : Activer le prune et synchroniser**
+
+```bash
+# Si prune n'est pas activé, l'activer
+argocd app set guestbook --sync-option Prune=true
+
+# Synchroniser
+argocd app sync guestbook --prune
+
+# Vérifier que le ConfigMap manuel n'a pas été supprimé
+kubectl get configmap manual-config -n guestbook
+```
+
+-> argocd ne gère que les ressources qu'il connait. Si vous créez des ressources manuellement et hors dépôt git, celle ci ne sont pas gérée.
 
 #### Partie 3 : Ignorer des différences
 
@@ -278,25 +328,14 @@ argocd app get app-with-hpa
 
 ---
 
-### Atelier 3.3 : Rollback et historique (30 min)
+### Atelier 3.3 : Rollback et historique
 
 #### Objectif
 Apprendre à gérer l'historique et effectuer des rollbacks.
 
 #### Partie 1 : Créer plusieurs révisions
 
-**Étape 1 : Forker le dépôt d'exemple (optionnel)**
-
-Si vous avez un compte GitHub :
-```bash
-# Forker https://github.com/argoproj/argocd-example-apps
-
-# Cloner votre fork
-git clone https://github.com/VOTRE_USERNAME/argocd-example-apps
-cd argocd-example-apps/guestbook
-```
-
-**Étape 2 : Modifier l'application plusieurs fois**
+**Étape 1 : Modifier l'application plusieurs fois**
 
 ```bash
 # Modification 1 : Changer l'image
