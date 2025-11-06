@@ -56,7 +56,6 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
-  ARGOCD_SERVER: <VOTRE_ARGOCD_SERVER>
 
 jobs:
   build:
